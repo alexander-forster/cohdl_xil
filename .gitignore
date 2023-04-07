@@ -1,0 +1,8 @@
+
+.*
+/build
+!.env
+!.gitignore
+/ignore
+__pycache__
+*.egg-info
