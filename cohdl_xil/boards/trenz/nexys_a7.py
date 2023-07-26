@@ -61,57 +61,6 @@ class Ps2:
         self.data = data
 
 
-class SPI:
-    def __init__(
-        self,
-        sclk,
-        cs,
-        mosi,
-        miso,
-        sclk_freq,
-        clk,
-        reset=None,
-        *,
-        cs_low_active=False,
-        cpol=0,
-        cpha=0,
-    ):
-        assert cpol in (0, 1)
-        assert cpha in (0, 1)
-
-        self._active = cohdl.Signal(cohdl.Bit, False, name="spi_active")
-        self._cpol = cpol
-        self._cpha = cpha
-        self._cs_low_active = cs_low_active
-
-        self.sclk = sclk
-        self.cs = cs
-        self.mosi = mosi
-        self.miso = miso
-
-        # hold divided clock in reset when
-        # no transaction is active
-        clk_reset = std.Reset(self._active, active_low=True)
-        self._clk_div = std.ClockDivider(clk, clk_reset, 100)
-
-    async def transaction(self, cmd_gen, resp_handler):
-        self._active <<= True
-        self.cs <<= True
-
-        while True:
-            if self._clk_div.rising():
-                if not cmd_gen(self):
-                    break
-
-        while True:
-            if self._clk_div.falling():
-                if not resp_handler(self):
-                    break
-
-        self.cs <<= False
-        self._active <<= False
-
-
 class Accelerometer:
     @dataclass
     class Connections:
@@ -125,12 +74,7 @@ class Accelerometer:
     def __init__(
         self, raw: Connections, *, clk=None, reset=None, sclk_freq=None
     ) -> None:
-        self.raw = raw
-
-        if clk is not None:
-            self.spi = SPI(raw.sclk, raw.cs, raw.mosi, raw.miso, 1234567890, clk, reset)
-
-        # 1MHz - 8MHz
+        raise NotImplementedError()
 
 
 class PinMapping:

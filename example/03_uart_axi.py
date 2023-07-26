@@ -24,8 +24,8 @@ def architecture():
     uart = AxiUartlite(
         clk,
         reset,
-        rx,
-        tx,
+        rx=rx,
+        tx=tx,
         baud=115200,
         parity=AxiUartlite.Parity.NO_PARITY,
     )

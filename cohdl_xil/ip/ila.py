@@ -14,7 +14,7 @@ class _DbgConnection:
     ip_name: str
 
 
-def ila(clk: cohdl.std.Clock, **probes):
+def ila(clk: cohdl.std.Clock, probes: dict):
     get_active_project().write_debug_probes()
 
     ip_ports = {"clk": cohdl.Port.input(cohdl.Bit)}

@@ -6,7 +6,7 @@ from cohdl_xil.ip.ila import ila
 
 board = NexysA7("build", top_entity_name="ExampleIpEntity")
 
-# with the submodule ip cohdl_xil provides
+# with the submodule ip, cohdl_xil provides
 # methods to instantiate xilinx ip cores
 # this example demonstrates this by using
 # an integrated logic analyzer
@@ -37,15 +37,17 @@ def architecture():
     ila(
         # the ila ip block requires a clock signal
         clk,
-        # Probes are defined using keyword arguments.
-        # The ila function automatically configures the ip
-        # block with the correct number of probes and sets
-        # their width to match the width of the given signals.
-        # The left hand side of the keyword argument defines
-        # the name, that will show up in the ila window.
-        counter=cnt,
-        all_sw=sw,
-        # single bit signals are converted to bitvectors
-        # internally and forwarded to the ip block
-        cnt_zero=cnt_zero,
+        dict(
+            # Probes are defined using a dictionary.
+            # The ila function automatically configures the ip
+            # block with the correct number of probes and sets
+            # their width to match the width of the given signals.
+            # The left hand side of the keyword argument defines
+            # the name that will show up in the ila window.
+            counter=cnt,
+            all_sw=sw,
+            # single bit signals are converted to bitvectors
+            # internally and forwarded to the ip block
+            cnt_zero=cnt_zero,
+        ),
     )

@@ -85,6 +85,36 @@ class VivadoProject:
     #
     #
 
+    def open_hw_manager(self):
+        self.tcl.write_cmd("open_hw_manager")
+
+    def connect_hw_server(self, allow_non_jtag: bool = False):
+        args = []
+
+        if allow_non_jtag:
+            args.append("-allow_non_jtag")
+
+        self.tcl.write_cmd("connect_hw_server", *args)
+
+    def open_hw_target(self):
+        self.tcl.write_cmd("open_hw_target")
+
+    def current_hw_device(self, *args):
+        self.tcl.write_cmd("current_hw_device", *args)
+
+    def refresh_hw_device(self, *args):
+        self.tcl.write_cmd("refresh_hw_device", *args)
+
+    def set_property(self, name, value, objects):
+        self.tcl.write_cmd("set_property", name, value, objects)
+
+    def program_hw_devices(self, devices):
+        self.tcl.write_cmd("program_hw_devices", devices)
+
+    #
+    #
+    #
+
     def write_tcl(self, file=None):
         self.tcl.print(file)
 
@@ -106,8 +136,15 @@ class Project:
             self.makefile = f"{build_dir}/Makefile"
             self.project_tcl = f"{build_dir}/generated/project.tcl"
             self.project_constraints = f"{build_dir}/generated/constraints/project.xdc"
+            self.program_tcl = f"{build_dir}/generated/program.tcl"
             self.vivado_log = f"{build_dir}/output/build_log/vivado.log"
             self.vivado_journal = f"{build_dir}/output/build_log/vivado.jou"
+            self.vivado_programmer_log = (
+                f"{build_dir}/output/build_log/vivado_programmer.log"
+            )
+            self.vivado_programmer_journal = (
+                f"{build_dir}/output/build_log/vivado_programmer.jou"
+            )
 
         def create_dirs(self):
             for path in [
@@ -192,7 +229,24 @@ class Project:
 
     def write(self):
         paths = self.paths
-        self.root_target.generate_makefile(path=paths.makefile)
+
+        bitstream_path = f"{paths.dir_output_impl}/{self._proj_name}.bit"
+        bitstream_target = MakeTarget(
+            bitstream_path, commands=[], dep=[self.root_target]
+        )
+
+        program_tcl = self.paths.relative_to_build(self.paths.program_tcl)
+        program_target = MakeTarget(
+            "program",
+            [
+                f"vivado -mode batch -source {program_tcl} -journal {paths.relative('vivado_programmer_journal')} -log {paths.relative('vivado_programmer_log')}"
+            ],
+            phony=True,
+        )
+
+        self.root_target.generate_makefile(
+            program_target, bitstream_target, path=paths.makefile
+        )
 
         util_file = f"{os.path.dirname(__file__)}/cohdl_make_util.py"
         shutil.copy(util_file, f"{paths.dir_build}/cohdl_make_util.py")
@@ -206,7 +260,7 @@ class Project:
         vivado.write_comment(
             [
                 "auto generated file",
-                "do not edit manualy",
+                "do not edit manually",
             ]
         )
 
@@ -245,9 +299,8 @@ class Project:
 
         vivado.write_line()
         vivado.write_comment("write bitstream file")
-        vivado.write_bitstream(
-            paths.relative_to_build(f"{paths.dir_output_impl}/{self._proj_name}.bit")
-        )
+
+        vivado.write_bitstream(paths.relative_to_build(bitstream_path))
 
         vivado.report_timing_summary(
             paths.relative_to_build(f"{paths.dir_output_reports}/imp_timing.rpt")
@@ -278,6 +331,44 @@ class Project:
 
         with open(paths.project_tcl, "w") as file:
             vivado.write_tcl(file)
+
+        #
+        # define vivado fpga programmer script
+        #
+
+        programmer = VivadoProject()
+
+        programmer.write_comment(
+            [
+                "auto generated file",
+                "do not edit manually",
+            ]
+        )
+
+        programmer.write_line()
+        programmer.open_hw_manager()
+        programmer.connect_hw_server(allow_non_jtag=True)
+        programmer.open_hw_target()
+
+        # TODO
+        # setup with multiple hw devices not yet supported
+        programmer.current_hw_device("[get_hw_devices]")
+        programmer.refresh_hw_device(
+            "-update_hw_probes false", "[lindex [get_hw_devices] 0]"
+        )
+
+        programmer.write_line()
+        programmer.set_property("PROBES.FILE", "{}", "[get_hw_devices]")
+        programmer.set_property("FULL_PROBES.FILE", "{}", "[get_hw_devices]")
+        programmer.set_property(
+            "PROGRAM.FILE", paths.relative_to_build(bitstream_path), "[get_hw_devices]"
+        )
+
+        programmer.write_line()
+        programmer.program_hw_devices("[get_hw_devices]")
+
+        with open(paths.program_tcl, "w") as file:
+            programmer.write_tcl(file)
 
 
 _active_project: None | Project = None
