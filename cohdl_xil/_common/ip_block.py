@@ -1,5 +1,6 @@
 import cohdl
 import pathlib
+import sys
 
 from cohdl.utility import MakeTarget
 from cohdl_xil._common.vivado_project import get_active_project, write_file_if_changed
@@ -71,11 +72,16 @@ def ip_block(
     pathlib.Path(build_log_path).mkdir(parents=True, exist_ok=True)
     build_log_path = paths.relative_to_build(build_log_path)
 
+    # determine current python path
+    # and use it as an interpreter for cohdl_make_util.py
+    # used for cleanup before new build
+    python_path = pathlib.Path(sys.executable).as_posix()
+
     active_project.root_target.add_dependency(
         MakeTarget(
             paths.relative_to_build(xci_path),
             [
-                f"python3 cohdl_make_util.py remove_old {paths.relative_to_build(tcl_path)} {paths.relative_to_build(xci_path)} {paths.relative_to_build(f'{out_ip_path}/{module_name}')}",
+                f"{python_path} cohdl_make_util.py remove_old {paths.relative_to_build(tcl_path)} {paths.relative_to_build(xci_path)} {paths.relative_to_build(f'{out_ip_path}/{module_name}')}",
                 f"vivado -mode batch -source {paths.relative_to_build(tcl_path)} -journal {build_log_path}/vivado.jou -log {build_log_path}/vivado.log",
             ],
             dep=[paths.relative_to_build(tcl_path)],

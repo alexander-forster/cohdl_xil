@@ -165,7 +165,8 @@ class Project:
             return self.relative_to_build(getattr(self, name))
 
         def relative_to_build(self, path: str) -> str:
-            return str(Path(path).relative_to(self.dir_build))
+            # as_posix required to fix path separator on windows
+            return str(Path(path).relative_to(self.dir_build).as_posix())
 
     class BuildStage:
         def __init__(self, name):
