@@ -113,6 +113,15 @@ PORTS = FpgaPorts([
     PortCapability("B11", [OUTPUT], [IO.LVCMOS33]),
     PortCapability("B12", [OUTPUT], [IO.LVCMOS33]),
 
+    # accelerometer
+    PortCapability("B13", [INPUT], [IO.LVCMOS33]),
+    PortCapability("C16", [INPUT], [IO.LVCMOS33]),
+    PortCapability("F14", [OUTPUT], [IO.LVCMOS33]),
+    PortCapability("E15", [INPUT], [IO.LVCMOS33]),
+    PortCapability("D15", [OUTPUT], [IO.LVCMOS33]),
+    PortCapability("F15", [OUTPUT], [IO.LVCMOS33]),
+
+
     # ps2
     PortCapability("F4", [INOUT], [IO.LVCMOS33]),
     PortCapability("B2", [INOUT], [IO.LVCMOS33]),

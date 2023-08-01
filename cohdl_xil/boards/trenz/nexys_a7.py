@@ -71,10 +71,10 @@ class Accelerometer:
         cs: Any
         sclk: Any
 
-    def __init__(
-        self, raw: Connections, *, clk=None, reset=None, sclk_freq=None
-    ) -> None:
-        raise NotImplementedError()
+    def __init__(self, sclk, mosi, miso, cs, int_1, int_2) -> None:
+        self.spi = std.spi.Spi(sclk=sclk, mosi=mosi, miso=miso, chip_select=cs)
+        self.int_1 = int_1
+        self.int_2 = int_2
 
 
 class PinMapping:
@@ -178,7 +178,7 @@ class PinMapping:
         mosi=PortConfiguration("F14", OUTPUT, IO.LVCMOS33),
         miso=PortConfiguration("E15", INPUT, IO.LVCMOS33),
         cs=PortConfiguration("D15", OUTPUT, IO.LVCMOS33),
-        sclk=PortConfiguration("F15", INPUT, IO.LVCMOS33),
+        sclk=PortConfiguration("F15", OUTPUT, IO.LVCMOS33),
     )
 
     # vga
@@ -351,14 +351,12 @@ class NexysA7:
         pm = PinMapping.accelerometer
 
         return Accelerometer(
-            Accelerometer.Connections(
-                int_1=self.fpga.reserve_port("acl_int_1", cohdl.Bit, pm.int_1),
-                int_2=self.fpga.reserve_port("acl_int_2", cohdl.Bit, pm.int_2),
-                mosi=self.fpga.reserve_port("acl_mosi", cohdl.Bit, pm.mosi),
-                miso=self.fpga.reserve_port("acl_miso", cohdl.Bit, pm.miso),
-                cs=self.fpga.reserve_port("acl_cs", cohdl.Bit, pm.cs),
-                sclk=self.fpga.reserve_port("acl_sclk", cohdl.Bit, pm.sclk),
-            )
+            sclk=self.fpga.reserve_port("acl_sclk", cohdl.Bit, pm.sclk),
+            mosi=self.fpga.reserve_port("acl_mosi", cohdl.Bit, pm.mosi),
+            miso=self.fpga.reserve_port("acl_miso", cohdl.Bit, pm.miso),
+            cs=self.fpga.reserve_port("acl_cs", cohdl.Bit, pm.cs),
+            int_1=self.fpga.reserve_port("acl_int_1", cohdl.Bit, pm.int_1),
+            int_2=self.fpga.reserve_port("acl_int_2", cohdl.Bit, pm.int_2),
         )
 
     def architecture_impl(self, fn=None, *, build=True):
