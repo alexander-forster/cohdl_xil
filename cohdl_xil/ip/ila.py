@@ -59,17 +59,14 @@ def ila(clk: cohdl.std.Clock, probes: dict):
             if issubclass(con.type, cohdl.Bit):
                 local_signal = cohdl.Signal[cohdl.BitVector[1]](name=con.local_name)
 
-                # concurrent_context required because introductions
-                # of prefix wrapper in std.concurrent causes problems with
-                # capture lazy flag
-                @cohdl.concurrent_context
+                @cohdl.std.concurrent
                 def con_logic():
                     local_signal[0] <<= getattr(self, con.wrapped_name)
 
             else:
                 local_signal = cohdl.Signal[con.type](name=con.local_name)
 
-                @cohdl.concurrent_context
+                @cohdl.std.concurrent
                 def con_logic():
                     local_signal.next = getattr(self, con.wrapped_name)
 
