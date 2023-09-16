@@ -1,0 +1,7 @@
+[project]
+name="cohdl_xil"
+authors = [
+    { name = "Alexander Forster", email = "alexander.forster123@gmail.com" }
+]
+description="Adds support for the Xilinx toolchain to CoHDL"
+version="0.1"
