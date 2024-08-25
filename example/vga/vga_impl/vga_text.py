@@ -10,33 +10,32 @@ from example.vga.vga_impl.font_reader import FontReader
 
 
 class Font:
-    @cohdl.consteval
-    def __init__(self):
-        ...
+    @cohdl.pyeval
+    def __init__(self): ...
 
-    @cohdl.consteval
+    @cohdl.pyeval
     def gen_lookup(self, cnt: int):
         return Signal[Array[Unsigned.upto(self.symbol_cnt() - 1), cnt]]()
 
-    @cohdl.consteval
+    @cohdl.pyeval
     def gen_memory(self):
         return Signal[Array[BitVector[self.symbol_bits()], self.symbol_cnt()]](
             self.array_definition()
         )
 
-    @cohdl.consteval
+    @cohdl.pyeval
     def symbol_cnt(self):
         return len(self.array_definition())
 
-    @cohdl.consteval
+    @cohdl.pyeval
     def pixel_cnt(self):
         return self.width() * self.height()
 
-    @cohdl.consteval
+    @cohdl.pyeval
     def symbol_bits(self):
         return len(self.array_definition()[0])
 
-    @cohdl.consteval
+    @cohdl.pyeval
     def get_letter(self, index):
         return self.array_definition()[index]
 
@@ -47,15 +46,15 @@ class Font:
     #
     #
 
-    @cohdl.consteval
+    @cohdl.pyeval
     def array_definition(self):
         return []
 
-    @cohdl.consteval
+    @cohdl.pyeval
     def width(self):
         pass
 
-    @cohdl.consteval
+    @cohdl.pyeval
     def height(self):
         pass
 
@@ -69,18 +68,18 @@ class FileFont(Font):
         self._char_width = 8
         self._char_height = height
 
-    @cohdl.consteval
+    @cohdl.pyeval
     def array_definition(self):
         return self._array_def
 
     def decode_pixel(self, pixelmask, pixelindex):
         return pixelmask[pixelindex]
 
-    @cohdl.consteval
+    @cohdl.pyeval
     def width(self):
         return self._char_width
 
-    @cohdl.consteval
+    @cohdl.pyeval
     def height(self):
         return self._char_height
 

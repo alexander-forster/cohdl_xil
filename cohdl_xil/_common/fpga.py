@@ -6,6 +6,7 @@ import enum
 import cohdl
 from pathlib import Path
 from cohdl import Port
+from cohdl import std
 
 from .tcl_writer import TclWriter
 from .io_standards import IoStandard
@@ -55,9 +56,9 @@ class PortCapability:
 
 @dataclass
 class PortConfiguration:
-    ident: str
+    ident: str | None
     direction: Direction
-    io_standard: IoStandard
+    io_standard: IoStandard | None
 
 
 class FpgaPorts:
@@ -93,6 +94,9 @@ class Fpga:
     def architecture(self, fn):
         self._arch = fn
 
+    def constraints(self):
+        return self._contraints
+
     def configure_port(
         self, port: Port, config: PortConfiguration | list[PortConfiguration]
     ):
@@ -102,28 +106,42 @@ class Fpga:
             assert port.direction() is config.direction
             assert isinstance(config, PortConfiguration)
             assert name not in self._used_ports
-            self.ports.check_config(config)
 
-            self._contraints.add_constrained_port(
-                name, config.ident, str(config.io_standard)
-            )
+            # when no ident is set constraints for the port
+            # must be defined by external means
+            # (example mig generator)
+            if config.ident is not None:
+                self.ports.check_config(config)
+
+                self._contraints.add_constrained_port(
+                    name, config.ident, str(config.io_standard)
+                )
         elif issubclass(port.type, cohdl.BitVector):
             width = port.width
+
+            if not isinstance(config, list):
+                assert config.ident is None
+                config = [config] * width
 
             assert isinstance(config, list) and width == len(config)
 
             for nr, c in enumerate(config):
                 assert c.direction is port.direction()
-                self.ports.check_config(c)
 
-                self._contraints.add_constrained_port(
-                    f"{name}[{nr}]", c.ident, str(c.io_standard)
-                )
+                # when no ident is set constraints for the port
+                # must be defined by external means
+                # (example mig generator)
+                if c.ident is not None:
+                    self.ports.check_config(c)
+
+                    self._contraints.add_constrained_port(
+                        f"{name}[{nr}]", c.ident, str(c.io_standard)
+                    )
         else:
             raise AssertionError(f"invalid port type {port.type}")
 
         self._used_ports[name] = port
-        self._top_entity._info.add_port(name, port)
+        self._top_entity._cohdl_info.add_port(name, port)
 
     def reserve_port(
         self, name, port_type, config: PortConfiguration | list[PortConfiguration]

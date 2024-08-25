@@ -126,6 +126,22 @@ PORTS = FpgaPorts([
     PortCapability("F4", [INOUT], [IO.LVCMOS33]),
     PortCapability("B2", [INOUT], [IO.LVCMOS33]),
 
+    # ethernet
+
+    PortCapability("A9",  [ INPUT], [IO.LVCMOS33]),
+    PortCapability("C9",  [OUTPUT], [IO.LVCMOS33]),
+    PortCapability("B3",  [OUTPUT], [IO.LVCMOS33]),
+    PortCapability("D10", [ INPUT], [IO.LVCMOS33]),
+    PortCapability("C11", [ INPUT], [IO.LVCMOS33]),
+    PortCapability("C10", [ INPUT], [IO.LVCMOS33]),
+    PortCapability("A10", [OUTPUT], [IO.LVCMOS33]),
+    PortCapability("A8",  [OUTPUT], [IO.LVCMOS33]),
+    PortCapability("B9",  [OUTPUT], [IO.LVCMOS33]),
+    PortCapability("D9",  [ INPUT], [IO.LVCMOS33]),
+    PortCapability("B8",  [ INPUT], [IO.LVCMOS33]),
+    PortCapability("D5",  [OUTPUT], [IO.LVCMOS33]),
+
+
     # PMOD
 
     *_pmod_capability("C17","D18","E18","G17","D17","E17","F18","G18"),

@@ -19,7 +19,27 @@ class Clock:
         )
 
 
-class ConstrainedObj:
+class TclSource:
+    def write_tcl(self, tcl: TclWriter):
+        pass
+
+
+class TclCode(TclSource):
+    def __init__(self, *code, comment=None) -> None:
+        super().__init__()
+        self._code = code
+        self._comment = comment
+
+    def write_tcl(self, tcl: TclWriter):
+        tcl.write_line("")
+        if self._comment is not None:
+            tcl.write_comment(self._comment)
+
+        for line in self._code:
+            tcl.write_line(line)
+
+
+class ConstrainedObj(TclSource):
     def __init__(self, name):
         self.name = name
         self.clk: Clock | None = None
@@ -103,6 +123,7 @@ set_property -dict { PACKAGE_PIN V11   IOSTANDARD LVCMOS33 } [get_ports { LED[15
 class Constraints:
     def __init__(self):
         self._constrined_objs: dict[str, ConstrainedObj] = {}
+        self._tcl_code: list[TclCode] = []
 
     def get_constrained(self, name: str):
         return self._constrined_objs[name]
@@ -115,11 +136,17 @@ class Constraints:
             name, Port(name, {"PACKAGE_PIN": package_pin, "IOSTANDARD": io_standard})
         )
 
+    def add_tcl_lines(self, *lines: str, comment=None):
+        self._tcl_code.append(TclCode(*lines, comment=comment))
+
     def write_tcl(self, tcl: TclWriter):
         tcl.write_comment("auto generated project constraints")
 
         for obj in self._constrined_objs.values():
             obj.write_tcl(tcl)
+
+        for code in self._tcl_code:
+            code.write_tcl(tcl)
 
     def write_file(self, file_path):
         tcl = TclWriter()

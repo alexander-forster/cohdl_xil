@@ -137,7 +137,7 @@ class VgaScreen:
                 global_y
             )
 
-        cohdl.Block.on_exit(self._run)
+        cohdl.on_block_exit(self._run)
 
     def add_elem(self, elem: VgaElem):
         self.elems.append(elem)

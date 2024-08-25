@@ -23,8 +23,8 @@ def architecture():
 
     # use the method reserve to get a new clock
     # with the given frequency in MHz
-    clk_pll1 = mmcm.reserve(25)
-    clk_pll2 = mmcm.reserve(150)
+    clk_pll1 = mmcm.reserve(std.MHz(25))
+    clk_pll2 = mmcm.reserve(std.MHz(150))
 
     # define counter signals and increment each
     # every clock cycle of the corresponding clock

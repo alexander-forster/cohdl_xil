@@ -38,7 +38,7 @@ def seven_seg(inp: Unsigned[4]):
 
 @board.architecture
 def architecture():
-    ctx = std.Context(
+    ctx = std.SequentialContext(
         clk=board.clock(),
         reset=std.Reset(board.btn_reset(positive_logic=True)),
     )

@@ -127,6 +127,7 @@ class Project:
             self.dir_generated_vhdl = f"{build_dir}/generated/vhdl"
             self.dir_generated_ip = f"{build_dir}/generated/ip_scripts"
             self.dir_generated_constraints = f"{build_dir}/generated/constraints"
+            self.dir_generated_dep = f"{build_dir}/generated/dep"
             self.dir_output = f"{build_dir}/output"
             self.dir_output_ip = f"{build_dir}/output/ip"
             self.dir_output_reports = f"{build_dir}/output/reports"
@@ -153,6 +154,7 @@ class Project:
                 self.dir_generated_constraints,
                 self.dir_generated_vhdl,
                 self.dir_generated_ip,
+                self.dir_generated_dep,
                 self.dir_output,
                 self.dir_output_ip,
                 self.dir_output_reports,
@@ -202,6 +204,7 @@ class Project:
         self._vhdl_files = []
         self._constraint_files = []
         self._ip_files = []
+        self._dep_files = []
 
         self._write_debug_probes = False
 
@@ -224,6 +227,35 @@ class Project:
 
     def add_ip(self, xci_path):
         self._ip_files.append(xci_path)
+
+    def add_dependency(self, file_name, file_content, *, make_unique=False) -> str:
+        """
+        Creates a new file named `file_name` in the `generated/dep` directory of
+        the build directory and writes `file_content` into it. When `make_unique`
+        is set to True a counter value is added to the new file name to avoid name
+        collisions.
+
+        When the file already exists it is overwritten unless the content matches
+        `file_content` in which case noting is written.
+
+        Returns the path of the new file relative to the build directory.
+        """
+
+        if make_unique:
+            original_filename = file_name
+            count = 0
+
+            while file_name in self._dep_files:
+                count += 1
+                file_name = f"{count}_{original_filename}"
+
+        assert (
+            not file_name in self._dep_files
+        ), f"dependency '{file_name}' already exists"
+
+        dep_path = f"{self.paths.dir_generated_dep}/{file_name}"
+        write_file_if_changed(dep_path, file_content)
+        return self.paths.relative_to_build(dep_path)
 
     def write_debug_probes(self):
         self._write_debug_probes = True

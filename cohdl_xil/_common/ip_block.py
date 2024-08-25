@@ -18,7 +18,11 @@ def ip_block(
     module_name,
     properties: dict[str, str],
     ports: dict[str, cohdl.Port],
+    dependencies: list[str] | None = None,
 ) -> type[cohdl.Entity]:
+    if dependencies is None:
+        dependencies = []
+
     if module_name in _used_module_names:
         cnt = 1
         while f"{module_name}_{cnt}" in _used_module_names:
@@ -84,7 +88,7 @@ def ip_block(
                 f"{python_path} cohdl_make_util.py remove_old {paths.relative_to_build(tcl_path)} {paths.relative_to_build(xci_path)} {paths.relative_to_build(f'{out_ip_path}/{module_name}')}",
                 f"vivado -mode batch -source {paths.relative_to_build(tcl_path)} -journal {build_log_path}/vivado.jou -log {build_log_path}/vivado.log",
             ],
-            dep=[paths.relative_to_build(tcl_path)],
+            dep=[paths.relative_to_build(tcl_path), *dependencies],
         )
     )
 

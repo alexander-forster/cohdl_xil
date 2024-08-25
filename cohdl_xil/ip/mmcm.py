@@ -98,7 +98,7 @@ class _MmcmImpl:
         self.ip.set_property("CONFIG.MMCM_DIVCLK_DIVIDE", str(div))
 
         self.ip.add_port(Port.input(Bit, name="clk_in1"), clk.signal())
-        self.ip.add_port(Port.input(Bit, name="reset"), reset.signal())
+        self.ip.add_port(Port.input(Bit, name="reset"), reset.active_high_signal())
         self.ip.add_port(Port.output(Bit, name="locked"), locked)
 
     def instantiate(self):
@@ -143,6 +143,10 @@ class Mmcm:
             return [self.frequency * div for div in self.possible_div]
 
     def _instantiate(self):
+        if len(self._output_info) == 0:
+            print("MMCM not instantiated because no outputs are used")
+            return
+
         freq = self.clk.frequency().megahertz()
 
         possible_f_int = FloatRange.filter_overlapping(
@@ -185,12 +189,16 @@ class Mmcm:
         self._cnt = 0
         self._locked = Signal[Bit](name="locked")
 
-        Block.on_exit(self._instantiate)
+        cohdl.on_block_exit(self._instantiate)
 
     def locked(self):
         return self._locked
 
-    def reserve(self, frequency_mhz: float, allowed_error=0):
+    def reserve(self, frequency: std.Frequency, allowed_error=0):
+        assert isinstance(frequency, std.Frequency)
+
+        frequency_mhz = frequency.megahertz()
+
         assert (
             4.687 <= frequency_mhz <= 800.000
         ), f"frequency {frequency_mhz} MHz outside allowed range [4.687 MHz - 800.000 MHz]"

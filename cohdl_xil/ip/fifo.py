@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import enum
-from cohdl import Port, Bit, BitVector, Signal
+from cohdl import Port, Bit, BitVector, Signal, expr
 from cohdl import std
 
 from cohdl_xil import ip_block
@@ -129,6 +129,15 @@ class _FifoBase:
     def pop_value(self):
         self.rd_en ^= True
         return self.data_out
+
+    async def wait_and_push(self, value):
+        value_buffer = Signal(value)
+        await expr(not self.full)
+        self.push_value(value_buffer)
+
+    async def wait_and_pop(self):
+        await expr(not self.empty)
+        return self.pop_value()
 
 
 class CommonClkFifo(_FifoBase):
